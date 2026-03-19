@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShiftSync — Votre planning automatiquement dans votre calendrier</title>
+  <meta
+    name="description"
+    content="ShiftSync synchronise automatiquement votre planning professionnel avec votre calendrier personnel."
+  />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --bg-soft: #f8fafc;
+      --text: #0f172a;
+      --text-soft: #64748b;
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --primary-soft: #eef2ff;
+      --success: #22c55e;
+      --border: #e2e8f0;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
+      --radius-sm: 12px;
+      --container: 1180px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    .container {
+      width: min(100% - 32px, var(--container));
+      margin: 0 auto;
+    }
+
+    .section {
+      padding: 88px 0;
+    }
+
+    .section-soft {
+      background: var(--bg-soft);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: var(--primary-dark);
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: clamp(32px, 5vw, 46px);
+      line-height: 1.1;
+      margin: 0 0 16px;
+      letter-spacing: -0.03em;
+    }
+
+    .section-subtitle {
+      font-size: 18px;
+      color: var(--text-soft);
+      max-width: 760px;
+      margin: 0;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.82);
+      border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 76px;
+      gap: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--primary), #8b5cf6);
+      color: #fff;
+      box-shadow: var(--shadow);
+      font-weight: 800;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      color: var(--text-soft);
+      font-size: 15px;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      transition: 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(99, 102, 241, 0.22);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-secondary {
+      background: #fff;
+      border-color: var(--border);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      border-color: #cbd5e1;
+      background: #fdfdfd;
+    }
+
+    .hero {
+      padding: 72px 0 56px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.08fr 0.92fr;
+      align-items: center;
+      gap: 52px;
+    }
+
+    .hero-title {
+      font-size: clamp(42px, 6vw, 68px);
+      line-height: 0.98;
+      letter-spacing: -0.05em;
+      margin: 0 0 20px;
+      max-width: 760px;
+    }
+
+    .hero-subtitle {
+      font-size: 20px;
+      color: var(--text-soft);
+      max-width: 640px;
+      margin: 0 0 28px;
+    }
+
+    .hero-points {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 0 0 32px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .hero-points li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #fff;
+      font-weight: 600;
+      color: #1e293b;
+      min-height: 64px;
+    }
+
+    .check {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: rgba(34, 197, 94, 0.14);
+      color: var(--success);
+      font-size: 14px;
+      flex: 0 0 auto;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .hero-note {
+      margin-top: 18px;
+      color: var(--text-soft);
+      font-size: 14px;
+    }
+
+    .hero-visual {
+      position: relative;
+    }
+
+    .visual-card {
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border: 1px solid var(--border);
+      border-radius: 26px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+    }
+
+    .visual-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.12);
+      color: #15803d;
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 22px;
+    }
+
+    .mockup-grid {
+      display: grid;
+      grid-template-columns: 1fr 72px 1fr;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .phone {
+      border-radius: 28px;
+      background: #0f172a;
+      padding: 10px;
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+    }
+
+    .phone-screen {
+      border-radius: 22px;
+      background: #fff;
+      overflow: hidden;
+      min-height: 470px;
+      position: relative;
+    }
+
+    .phone-header {
+      padding: 18px 18px 10px;
+      border-bottom: 1px solid #eef2f7;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text-soft);
+    }
+
+    .calendar-month {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px;
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    .days-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      padding: 0 18px 18px;
+    }
+
+    .day-label,
+    .day-cell {
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .day-label {
+      color: var(--text-soft);
+      font-weight: 700;
+      padding-bottom: 6px;
+    }
+
+    .day-cell {
+      min-height: 56px;
+      border-radius: 14px;
+      border: 1px solid #eef2f7;
+      padding: 8px 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      justify-content: flex-start;
+      background: #fff;
+    }
+
+    .day-cell strong {
+      font-size: 12px;
+      color: #1e293b;
+    }
+
+    .shift-tag {
+      display: inline-flex;
+      align-self: center;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: var(--primary-dark);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .arrow-sync {
+      display: grid;
+      place-items: center;
+      font-size: 34px;
+      color: var(--primary);
+      font-weight: 800;
+    }
+
+    .sync-card {
+      padding: 18px;
+      margin: 18px;
+      border-radius: 18px;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+    }
+
+    .sync-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      color: #15803d;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .sync-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #eef2f7;
+      font-size: 14px;
+    }
+
+    .sync-row:last-child {
+      border-bottom: none;
+    }
+
+    .code-pill {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: var(--primary-dark);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .cards-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 22px;
+      margin-top: 42px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .card-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: var(--primary-soft);
+      color: var(--primary-dark);
+      font-weight: 900;
+      margin-bottom: 16px;
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 22px;
+      letter-spacing: -0.02em;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--text-soft);
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 24px;
+      margin-top: 46px;
+      position: relative;
+    }
+
+    .step {
+      position: relative;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 26px;
+      box-shadow: var(--shadow);
+    }
+
+    .step-number {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 800;
+      margin-bottom: 18px;
+    }
+
+    .step h3 {
+      margin: 0 0 10px;
+      font-size: 22px;
+    }
+
+    .step p {
+      margin: 0;
+      color: var(--text-soft);
+    }
+
+    .compat {
+      margin-top: 38px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .compat-item {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      font-weight: 700;
+      color: #1e293b;
+      box-shadow: var(--shadow);
+    }
+
+    .pricing {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px;
+      margin-top: 42px;
+      align-items: stretch;
+    }
+
+    .price-card {
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      background: #fff;
+      padding: 30px;
+      box-shadow: var(--shadow);
+    }
+
+    .price-card.featured {
+      background: linear-gradient(180deg, #f5f7ff 0%, #eef2ff 100%);
+      border-color: #c7d2fe;
+    }
+
+    .plan-badge {
+      display: inline-flex;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 16px;
+      background: var(--bg-soft);
+      color: var(--text);
+    }
+
+    .featured .plan-badge {
+      background: rgba(99, 102, 241, 0.12);
+      color: var(--primary-dark);
+    }
+
+    .price-card h3 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      letter-spacing: -0.03em;
+    }
+
+    .price-card p {
+      margin: 0 0 24px;
+      color: var(--text-soft);
+    }
+
+    .features {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 28px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .features li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      color: #1e293b;
+      font-weight: 500;
+    }
+
+    .pricing-note {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 18px;
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .cta-banner {
+      background: linear-gradient(135deg, var(--primary), #8b5cf6);
+      color: #fff;
+      border-radius: 28px;
+      padding: 54px 28px;
+      text-align: center;
+      box-shadow: 0 24px 60px rgba(99, 102, 241, 0.22);
+    }
+
+    .cta-banner h2 {
+      margin: 0 0 14px;
+      font-size: clamp(32px, 5vw, 48px);
+      letter-spacing: -0.04em;
+    }
+
+    .cta-banner p {
+      max-width: 760px;
+      margin: 0 auto 28px;
+      color: rgba(255, 255, 255, 0.88);
+      font-size: 18px;
+    }
+
+    .cta-banner .btn-primary {
+      background: #fff;
+      color: var(--primary-dark);
+      box-shadow: none;
+    }
+
+    .footer {
+      padding: 36px 0 52px;
+      color: var(--text-soft);
+      font-size: 14px;
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      border-top: 1px solid var(--border);
+      padding-top: 24px;
+    }
+
+    @media (max-width: 1080px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-points {
+        grid-template-columns: 1fr;
+      }
+
+      .cards-3,
+      .steps,
+      .pricing,
+      .compat {
+        grid-template-columns: 1fr;
+      }
+
+      .mockup-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .arrow-sync {
+        transform: rotate(90deg);
+      }
+    }
+
+    @media (max-width: 820px) {
+      .nav-links {
+        display: none;
+      }
+
+      .hero {
+        padding-top: 40px;
+      }
+
+      .section {
+        padding: 72px 0;
+      }
+
+      .hero-title {
+        font-size: 42px;
+      }
+
+      .hero-subtitle {
+        font-size: 18px;
+      }
+
+      .nav-actions .btn-secondary {
+        display: none;
+      }
+
+      .footer-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .container {
+        width: min(100% - 20px, var(--container));
+      }
+
+      .card,
+      .step,
+      .price-card,
+      .visual-card {
+        padding: 20px;
+      }
+
+      .cta-banner {
+        padding: 38px 20px;
+      }
+
+      .phone-screen {
+        min-height: 420px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav">
+      <a href="#" class="brand">
+        <span class="brand-mark">S</span>
+        <span>ShiftSync</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="#probleme">Problème</a>
+        <a href="#solution">Solution</a>
+        <a href="#compatibilite">Compatibilité</a>
+        <a href="#offres">Offres</a>
+      </nav>
+
+      <div class="nav-actions">
+        <a class="btn btn-secondary" href="#solution">Voir comment ça fonctionne</a>
+        <a class="btn btn-primary" href="#cta">Rejoindre la liste d’attente</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <div class="eyebrow">Synchronisation automatique de planning</div>
+
+          <h1 class="hero-title">
+            Votre planning de travail, automatiquement dans votre calendrier.
+          </h1>
+
+          <p class="hero-subtitle">
+            ShiftSync synchronise votre planning professionnel avec votre calendrier
+            personnel, sans saisie manuelle, sans copier-coller, et sans oubli.
+          </p>
+
+          <ul class="hero-points">
+            <li><span class="check">✓</span> Synchronisation automatique</li>
+            <li><span class="check">✓</span> Compatible iPhone, Android, Google Calendar</li>
+            <li><span class="check">✓</span> Toujours à jour</li>
+          </ul>
+
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#cta">Rejoindre la liste d’attente</a>
+            <a class="btn btn-secondary" href="#solution">Voir comment ça fonctionne</a>
+          </div>
+
+          <p class="hero-note">
+            Pensé pour les métiers aux horaires variables : transport, santé, sécurité, etc.
+          </p>
+        </div>
+
+        <div class="hero-visual">
+          <div class="visual-card">
+            <div class="visual-badge">● Synchronisation en cours</div>
+
+            <div class="mockup-grid">
+              <div class="phone">
+                <div class="phone-screen">
+                  <div class="phone-header">Planning professionnel</div>
+                  <div class="calendar-month">
+                    <span>Mars 2026</span>
+                    <span style="color:#94a3b8;">→</span>
+                  </div>
+                  <div class="days-grid">
+                    <div class="day-label">Lun</div>
+                    <div class="day-label">Mar</div>
+                    <div class="day-label">Mer</div>
+                    <div class="day-label">Jeu</div>
+                    <div class="day-label">Ven</div>
+                    <div class="day-label">Sam</div>
+                    <div class="day-label">Dim</div>
+
+                    <div class="day-cell"><strong>1</strong><span class="shift-tag">T1-80*</span></div>
+                    <div class="day-cell"><strong>2</strong><span class="shift-tag">RN</span></div>
+                    <div class="day-cell"><strong>3</strong><span class="shift-tag">RHE</span></div>
+                    <div class="day-cell"><strong>4</strong><span class="shift-tag">RN</span></div>
+                    <div class="day-cell"><strong>5</strong><span class="shift-tag">GS-6*</span></div>
+                    <div class="day-cell"><strong>6</strong><span class="shift-tag">MA</span></div>
+                    <div class="day-cell"><strong>7</strong><span class="shift-tag">MA</span></div>
+
+                    <div class="day-cell"><strong>8</strong><span class="shift-tag">MA</span></div>
+                    <div class="day-cell"><strong>9</strong><span class="shift-tag">MN</span></div>
+                    <div class="day-cell"><strong>10</strong><span class="shift-tag">MA</span></div>
+                    <div class="day-cell"><strong>11</strong><span class="shift-tag">MA</span></div>
+                    <div class="day-cell"><strong>12</strong><span class="shift-tag">MA</span></div>
+                    <div class="day-cell"><strong>13</strong><span class="shift-tag">MA</span></div>
+                    <div class="day-cell"><strong>14</strong><span class="shift-tag">MA</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="arrow-sync">→</div>
+
+              <div class="phone">
+                <div class="phone-screen">
+                  <div class="phone-header">Calendrier personnel</div>
+                  <div class="sync-card">
+                    <div class="sync-status">✓ Toujours à jour</div>
+
+                    <div class="sync-row">
+                      <span>05 mars — GS-6*</span>
+                      <span class="code-pill">18:00</span>
+                    </div>
+                    <div class="sync-row">
+                      <span>06 mars — MA</span>
+                      <span class="code-pill">Journée</span>
+                    </div>
+                    <div class="sync-row">
+                      <span>07 mars — MA</span>
+                      <span class="code-pill">Journée</span>
+                    </div>
+                    <div class="sync-row">
+                      <span>09 mars — MN</span>
+                      <span class="code-pill">Journée</span>
+                    </div>
+                    <div class="sync-row">
+                      <span>10 mars — MA</span>
+                      <span class="code-pill">Journée</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-soft" id="probleme">
+      <div class="container">
+        <div class="eyebrow">Le problème</div>
+        <h2 class="section-title">Votre planning est bloqué dans un outil… et votre vie dans un autre.</h2>
+        <p class="section-subtitle">
+          Votre planning de travail est accessible sur un site interne. Votre vie personnelle, elle,
+          est organisée dans votre calendrier. ShiftSync fait enfin le lien entre les deux.
+        </p>
+
+        <div class="cards-3">
+          <article class="card">
+            <div class="card-icon">⌨</div>
+            <h3>Saisie manuelle</h3>
+            <p>Vous recopiez vos horaires à la main dans votre téléphone ou votre agenda.</p>
+          </article>
+
+          <article class="card">
+            <div class="card-icon">📸</div>
+            <h3>Captures d’écran</h3>
+            <p>Vous jonglez entre captures, messages, planning interne et calendrier personnel.</p>
+          </article>
+
+          <article class="card">
+            <div class="card-icon">↺</div>
+            <h3>Changements oubliés</h3>
+            <p>Le planning bouge, mais votre calendrier personnel, lui, ne suit pas automatiquement.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="solution">
+      <div class="container">
+        <div class="eyebrow">La solution</div>
+        <h2 class="section-title">ShiftSync fait le lien automatiquement.</h2>
+        <p class="section-subtitle">
+          Connectez votre planning, laissez ShiftSync récupérer vos horaires, puis retrouvez-les
+          directement dans votre calendrier personnel.
+        </p>
+
+        <div class="steps">
+          <article class="step">
+            <div class="step-number">1</div>
+            <h3>Connectez votre planning</h3>
+            <p>Vous entrez vos identifiants de planning dans un espace sécurisé.</p>
+          </article>
+
+          <article class="step">
+            <div class="step-number">2</div>
+            <h3>ShiftSync récupère vos horaires</h3>
+            <p>Vos services sont détectés, mis en forme et transformés en calendrier exploitable.</p>
+          </article>
+
+          <article class="step">
+            <div class="step-number">3</div>
+            <h3>Votre calendrier se met à jour</h3>
+            <p>Vos journées et horaires apparaissent automatiquement dans votre application de calendrier.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-soft" id="compatibilite">
+      <div class="container">
+        <div class="eyebrow">Compatibilité</div>
+        <h2 class="section-title">Fonctionne avec le calendrier que vous utilisez déjà.</h2>
+        <p class="section-subtitle">
+          ShiftSync repose sur un abonnement calendrier standard, compatible avec la majorité des
+          applications modernes via un lien privé `.ics`.
+        </p>
+
+        <div class="compat">
+          <div class="compat-item">Apple Calendar</div>
+          <div class="compat-item">Google Calendar</div>
+          <div class="compat-item">Outlook</div>
+          <div class="compat-item">Tout calendrier compatible .ics</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Bénéfices</div>
+        <h2 class="section-title">Gagnez du temps. Simplifiez votre quotidien.</h2>
+        <p class="section-subtitle">
+          Le but n’est pas d’ajouter une nouvelle application à gérer. Le but est d’enlever une friction
+          de votre vie quotidienne.
+        </p>
+
+        <div class="cards-3">
+          <article class="card">
+            <div class="card-icon">⏱</div>
+            <h3>Moins de friction</h3>
+            <p>Plus besoin de recopier, d’importer manuellement ou de vérifier votre planning chaque jour.</p>
+          </article>
+
+          <article class="card">
+            <div class="card-icon">🔄</div>
+            <h3>Toujours à jour</h3>
+            <p>Quand le planning change, votre calendrier suit automatiquement.</p>
+          </article>
+
+          <article class="card">
+            <div class="card-icon">🧠</div>
+            <h3>Moins de charge mentale</h3>
+            <p>Vous savez immédiatement quand vous travaillez, où vous commencez et comment vous organiser.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-soft" id="offres">
+      <div class="container">
+        <div class="eyebrow">Offres</div>
+        <h2 class="section-title">Simple pour vous. Encore plus utile avec le Premium.</h2>
+        <p class="section-subtitle">
+          Commencez gratuitement, puis passez à la version Premium pour partager votre planning
+          et bénéficier d’un historique plus complet.
+        </p>
+
+        <div class="pricing">
+          <article class="price-card">
+            <div class="plan-badge">Gratuit</div>
+            <h3>Pour vous</h3>
+            <p>Le plus simple pour ne plus jamais recopier votre planning à la main.</p>
+
+            <ul class="features">
+              <li><span class="check">✓</span> 1 planning connecté</li>
+              <li><span class="check">✓</span> Synchronisation automatique</li>
+              <li><span class="check">✓</span> Lien calendrier privé</li>
+            </ul>
+
+            <a class="btn btn-secondary" href="#cta">Rejoindre la liste d’attente</a>
+          </article>
+
+          <article class="price-card featured">
+            <div class="plan-badge">Premium</div>
+            <h3>Pour vous et vos proches</h3>
+            <p>Plus de confort, plus d’historique, et la possibilité de partager votre planning.</p>
+
+            <ul class="features">
+              <li><span class="check">✓</span> Partage du lien calendrier avec vos proches</li>
+              <li><span class="check">✓</span> Historique étendu</li>
+              <li><span class="check">✓</span> Mises à jour plus fréquentes</li>
+              <li><span class="check">✓</span> Support prioritaire</li>
+            </ul>
+
+            <a class="btn btn-primary" href="#cta">Être informé du lancement</a>
+          </article>
+        </div>
+
+        <div class="pricing-note">
+          Permettez à vos proches de voir votre planning sans avoir à leur expliquer chaque semaine.
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Pour qui ?</div>
+        <h2 class="section-title">Pensé pour les métiers aux horaires variables.</h2>
+        <p class="section-subtitle">
+          ShiftSync est conçu pour les professionnels dont le planning change régulièrement
+          et vit encore dans des outils internes peu pratiques.
+        </p>
+
+        <div class="cards-3">
+          <article class="card">
+            <div class="card-icon">🚊</div>
+            <h3>Transport</h3>
+            <p>Bus, tram, métro, train : des roulements complexes et des horaires qui évoluent.</p>
+          </article>
+
+          <article class="card">
+            <div class="card-icon">🏥</div>
+            <h3>Santé</h3>
+            <p>Services, rotations, gardes : le calendrier personnel doit suivre automatiquement.</p>
+          </article>
+
+          <article class="card">
+            <div class="card-icon">🚒</div>
+            <h3>Sécurité & urgences</h3>
+            <p>Horaires atypiques, astreintes, changements de service : moins de friction, plus de clarté.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="cta">
+      <div class="container">
+        <div class="cta-banner">
+          <h2>Essayez ShiftSync en avant-première</h2>
+          <p>
+            Nous ouvrons progressivement l’accès à ShiftSync. Rejoignez la liste d’attente pour être
+            parmi les premiers utilisateurs.
+          </p>
+          <a class="btn btn-primary" href="mailto:contact@shiftsync.app?subject=Je%20veux%20tester%20ShiftSync">
+            Rejoindre la liste d’attente
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="brand">
+        <span class="brand-mark">S</span>
+        <span>ShiftSync</span>
+      </div>
+      <div>Synchronisez votre planning avec votre calendrier, simplement.</div>
+    </div>
+  </footer>
+</body>
+</html>
