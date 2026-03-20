@@ -214,17 +214,112 @@ def add_all_day_event(cal: Calendar, title: str, date_value):
     e.description = ""
     cal.events.add(e)
 
+def try_enter_from_authenticated_page(page):
+    """
+    Gère la page intermédiaire SSO du type 'xxx is authenticated'.
+    Retourne True si on arrive au planning, sinon False.
+    """
+    def planning_visible():
+        try:
+            return page.locator("#MonthAndYearSelector").count() > 0
+        except Exception:
+            return False
+
+    # 1) simple reload
+    try:
+        page.reload(wait_until="domcontentloaded")
+        time.sleep(2)
+        if planning_visible():
+            return True
+    except Exception:
+        pass
+
+    # 2) clic sur le logo / image / lien principal
+    clickable_candidates = [
+        "img[alt*='RATP' i]",
+        "a img[alt*='RATP' i]",
+        "img",
+        "a[href]",
+    ]
+
+    for sel in clickable_candidates:
+        try:
+            locator = page.locator(sel).first
+            if locator.count() > 0:
+                locator.click(timeout=2000, force=True)
+                time.sleep(2.5)
+                if planning_visible():
+                    return True
+        except Exception:
+            pass
+
+    # 3) retour explicite vers l'URL du planning
+    try:
+        page.goto(URL, wait_until="domcontentloaded")
+        time.sleep(2)
+        if planning_visible():
+            return True
+    except Exception:
+        pass
+
+    return False
+
 
 def login_if_needed(page, username: str, password: str):
+    # Cas SSO : déjà authentifié mais pas encore redirigé vers le planning
+    try:
+        body_text = normalize_spaces(page.locator("body").inner_text())
+        if "authenticated" in body_text.lower():
+            ratp_candidates = [
+                "a img[alt*='RATP' i]",
+                "img[alt*='RATP' i]",
+                "a[href] img",
+                "a[href]"
+            ]
+
+            clicked = False
+            for sel in ratp_candidates:
+                try:
+                    elt = page.locator(sel).first
+                    if elt.count() > 0:
+                        elt.click(timeout=2000, force=True)
+                        clicked = True
+                        break
+                except Exception:
+                    pass
+
+            if clicked:
+                deadline = time.time() + 20
+                while time.time() < deadline:
+                    try:
+                        if page.locator("#MonthAndYearSelector").count() > 0:
+                            time.sleep(2)
+                            return
+                    except Exception:
+                        pass
+                    time.sleep(1)
+    except Exception:
+        pass
+
     if not username or not password:
         raise RuntimeError("Identifiants planning manquants.")
 
     page.goto(URL, wait_until="domcontentloaded")
     time.sleep(2)
 
+    # Cas 1 : déjà connecté, planning déjà visible
     try:
         if page.locator("#MonthAndYearSelector").count() > 0:
             return
+    except Exception:
+        pass
+
+    # Cas 2 : page SSO intermédiaire "already authenticated"
+    try:
+        body_text = normalize_spaces(page.locator("body").inner_text())
+        if "authenticated" in body_text.lower():
+            if try_enter_from_authenticated_page(page):
+                return
     except Exception:
         pass
 
@@ -258,6 +353,7 @@ def login_if_needed(page, username: str, password: str):
             pass
 
     if user_locator is None:
+        page.screenshot(path="debug_login_user_field.png", full_page=True)
         raise RuntimeError("Impossible de trouver le champ identifiant.")
 
     password_locator = None
@@ -272,28 +368,42 @@ def login_if_needed(page, username: str, password: str):
             pass
 
     if password_locator is None:
+        page.screenshot(path="debug_login_password_field.png", full_page=True)
         raise RuntimeError("Impossible de trouver le champ mot de passe.")
 
     submitted = False
+
+    submitted = False
+
+    # 1) Tentatives explicites de clic
     submit_selectors = [
         "input[type='submit'][value*='Valider' i]",
-        "button[type='submit']",
-        "input[type='submit']",
+        "input[value*='Valider' i]",
         "button:has-text('Valider')",
         "button:has-text('Connexion')",
         "button:has-text('Se connecter')",
+        "input[type='image']",
+        "button[type='submit']",
+        "input[type='submit']",
+        "[name*='valider' i]",
+        "[id*='valider' i]",
+        "[class*='valider' i]",
+        "[name*='submit' i]",
+        "[id*='submit' i]",
+        "[class*='submit' i]",
     ]
 
     for sel in submit_selectors:
         try:
             btn = page.locator(sel).first
-            btn.wait_for(timeout=1500)
-            btn.click(timeout=2000)
-            submitted = True
-            break
+            if btn.count() > 0:
+                btn.click(timeout=2000, force=True)
+                submitted = True
+                break
         except Exception:
             pass
 
+    # 2) Fallback : touche Entrée
     if not submitted:
         try:
             password_locator.press("Enter")
@@ -301,19 +411,80 @@ def login_if_needed(page, username: str, password: str):
         except Exception:
             pass
 
+    # 3) Fallback : soumettre le formulaire du champ mot de passe
     if not submitted:
+        try:
+            result = page.evaluate("""
+                () => {
+                    const pwd = document.querySelector("input[type='password']");
+                    if (!pwd) return false;
+                    const form = pwd.form || document.querySelector("form");
+                    if (!form) return false;
+
+                    const submitButton =
+                        form.querySelector("input[type='submit']") ||
+                        form.querySelector("button[type='submit']") ||
+                        form.querySelector("input[type='image']") ||
+                        form.querySelector("button") ||
+                        form.querySelector("input[type='button']");
+
+                    if (submitButton) {
+                        submitButton.click();
+                        return true;
+                    }
+
+                    form.requestSubmit ? form.requestSubmit() : form.submit();
+                    return true;
+                }
+            """)
+            if result:
+                submitted = True
+        except Exception:
+            pass
+
+    # 4) Debug fort si échec
+    if not submitted:
+        try:
+            page.screenshot(path="debug_login_submit.png", full_page=True)
+            Path("debug_login_submit.html").write_text(page.content(), encoding="utf-8")
+        except Exception:
+            pass
         raise RuntimeError("Impossible de soumettre le formulaire de connexion.")
 
+    # Attente souple du planning
+    deadline = time.time() + 35
+    while time.time() < deadline:
+        try:
+            if page.locator("#MonthAndYearSelector").count() > 0:
+                time.sleep(2)
+                return
+        except Exception:
+            pass
+
+        try:
+            body_text = normalize_spaces(page.locator("body").inner_text())
+            if "authenticated" in body_text.lower():
+                if try_enter_from_authenticated_page(page):
+                    return
+        except Exception:
+            pass
+
+        try:
+            current_url = page.url
+            if "Assignments" not in current_url and "SelfService2017" in current_url:
+                page.goto(URL, wait_until="domcontentloaded")
+        except Exception:
+            pass
+
+        time.sleep(1)
+
     try:
-        page.wait_for_selector("#MonthAndYearSelector", timeout=20000)
+        page.screenshot(path="debug_after_login.png", full_page=True)
+        Path("debug_after_login.html").write_text(page.content(), encoding="utf-8")
     except Exception:
-        page.goto(URL, wait_until="domcontentloaded")
-        page.wait_for_selector("#MonthAndYearSelector", timeout=20000)
+        pass
 
-    time.sleep(2)
-
-    if page.locator("#MonthAndYearSelector").count() == 0:
-        raise RuntimeError("Connexion effectuée, mais le planning n'a pas été détecté.")
+    raise RuntimeError(f"Connexion effectuée, mais le planning n'a pas été détecté. URL actuelle: {page.url}")
 
 
 def go_to_next_month(page):

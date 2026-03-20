@@ -1,0 +1,109 @@
+<!DOCTYPE html><html lang="fr"><head><meta name="Viewport" content="width=device-width, height=device-height"><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><link rel="shortcut icon" type="image/x-icon" href="/authExtml/images/favicon.ico"><link rel="stylesheet" type="text/css" href="/authExtml/css/bootstrap.min.css"><link rel="stylesheet" type="text/css" href="/authExtml/css/styles_sign_and_go.css"><link rel="stylesheet" type="text/css" href="/authExtml/css/styles_custom.css"><link rel="stylesheet" href="/authExtml/css/jQuery/ui-ilex-theme/jquery-ui-1.10.4.custom.min.css" type="text/css"><script src="/authExtml/js/jQuery/jquery.min.js"></script><script src="/authExtml/js/bootstrap.min.js"></script><script>$(document).ready(function() {$("button, input[type='submit'], input[type='cancel'], input[type='button']").addClass("ui-button ui-widget ui-state-default ui-corner-all");});</script><script src="/authExtml/img_func.js"></script><script src="/authExtml/js/ie_polyfills.js"></script><script src="/authExtml/js/custom.js"></script><title>Authentification</title>
+<script src="/authExtml/js/vk.js"></script>
+
+<script>
+  //affichage des warnings
+  function afficheMsg()
+  {
+    msg="null";
+    if (msg!="") alert(msg);
+  }
+  function cancelAuthentication()
+  {
+    document.theform.cancelAction.value="true";
+    document.theform.submit();
+  }
+  $(document).ready(function(){
+  $('h3.paragraphe_simple_QRCODE , input.QRCODEONLY').each(function(){
+  var challenge = $(this);
+	  var value="";
+	  if(challenge.is('h3'))
+		  {
+		   value=challenge.html();
+		  }
+	  else
+		  {
+		   value=challenge.val();
+		  }
+    var img = $("<div id='qrcode' class='QRCODE'>").append($("<img/>").attr('src', 'QRCode?width=auto&challenge='+encodeURIComponent(value))
+    		.load(function(response, status, xhr) {
+    		          if (this.complete && typeof this.naturalWidth != "undefined" && this.naturalWidth != 0) {
+    		            img.insertAfter(challenge);
+    		          }
+    		      }))
+      ;
+    });
+  $("form").keypress(function(event) {
+	    if (event.which == 13) {
+	    	if($(event.target).attr('type')=='password')
+	    		{
+	        event.preventDefault();
+	        $('input[name="validateButton"]').trigger('click');
+	    		}
+	    }
+	});
+  });
+
+//permet de cacher le bouton valider si une liste select est présente
+//utile pour le cas du HorsBande où il n'y a pas besoin de bouton Valider
+$(document).ready(function() {
+	if($('div.selectReplace').length)
+	{
+		$('#validateButton').hide();
+	}
+});
+//Affichage de l'image d'attente inwebo/rescueCodePush
+
+
+
+  
+
+</script>
+
+
+</head>
+<body onload="donner_focus()"><script>var retryCount=0;function getIEVersion() { var match = navigator.userAgent.match(/(?:MSIE |Trident\/.*; rv:)(\d+)/); return match ? parseInt(match[1]) : -1; }function donner_focus(){if(retryCount>100){return;}var currentIEVersion = getIEVersion();if(currentIEVersion <= 9){var bFound = false;if(document.forms[0]!=null){for(i=0; i < document.forms[0].length; i++){retryCount = retryCount+1;try{if (document.forms[0][i].type != "hidden") { if (document.forms[0][i].disabled != true) {     document.forms[0][i].focus();     var bFound = true;  } } if (bFound == true)   break; } catch(err) { setTimeout("donner_focus()",1000); } }}}}function donner_focus_and_verif_cookie_enabled(){donner_focus();if(!navigator.cookieEnabled){   window.location.href="error.jsp?errorMessage=error.CookieDisabled";}}</script><div id="wrapper"><div id="header"><div class="container"><div class="logo"></div><h1>Authentification Sign&amp;go </h1><div class="changeLang"><a href="?displayLang=en-gb">EN</a> | <a href="?displayLang=fr-fr">FR</a></div></div></div>
+  
+<div class="container"><div id="contenu_specifique_application"><h2>Authentification</h2>
+<h3>Identifiant et mot de passe Windows :</h3><div class="alert alert-danger alert-dismissible" role="alert"><button class="close ui-button ui-widget ui-state-default ui-corner-all" aria-label="Close" type="button" data-dismiss="alert"><span aria-hidden="true">×</span></button><span>Nom d'utilisateur ou mot de passe incorrect.</span></div>
+
+  <form action="/authExtml/dologin.jsp" method="post" name="theform">
+  <input type="hidden" name="csrfAuth" value="lvfk8cg223cg" style="">
+  <input type="hidden" name="sourceURL" value="https://selfservice-prod.ml.tcl.fr/SelfService2017/Home" style="">
+  <input type="hidden" name="koURL" value="" style="">
+  <input type="hidden" name="schema" value="Authent Adaptative Login Mot de Passe" style="">
+  <input type="hidden" name="cancelAction" value="" style="">
+
+
+    <div><label class="Form">Identifiant</label><input type="text" name="AUTHENTICATION.LOGIN" placeholder="Identifiant" tabindex="1" value="aie" style=""></div><div><label class="Form">Mot de passe</label><input id="AUTHENTICATION.PASSWORD" type="password" name="AUTHENTICATION.PASSWORD" placeholder="Mot de passe" tabindex="2" value="" autocomplete="off" style=""></div>
+    
+    
+    
+    
+  
+  
+         
+   
+
+      
+      
+      
+  <div id="clavierVirtuel" name="clavierVirtuel" style="display:none;padding-bottom: 20px;">
+     
+  </div>
+  <div id="numpadVirtuel" name="numpadVirtuel" style="display:none;padding-bottom: 20px;">
+     
+  </div>
+  <div id="numlineVirtuel" name="numlineVirtuel" style="display:none;padding-bottom: 20px;">
+     
+  </div>  
+  <br>
+  
+  
+	<input class="ui-button ui-widget ui-state-default ui-corner-all" name="validateButton" id="validateButton" type="submit" value="Valider " style="">
+	<input class="ui-button ui-widget ui-state-default ui-corner-all" type="button" name="cancelButton" value="Annuler" onclick="javascript:cancelAuthentication()" style="">
+
+  </form>
+</div></div></div>
+
+        <div style="opacity:0.5; position: fixed; bottom: 3px;">1.0</div></body></html>
