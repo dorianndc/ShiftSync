@@ -4,6 +4,7 @@ from app.database import SessionLocal
 from app.models import User
 from app.schemas import UserCreate
 from app.services.ics_service import generate_ics_for_user
+from fastapi import BackgroundTasks
 
 router = APIRouter()
 
@@ -17,7 +18,7 @@ def get_db():
 
 
 @router.post("/create-user")
-def create_user(payload: UserCreate, db: Session = Depends(get_db)):
+def create_user(payload: UserCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
 
     existing_user = db.query(User).filter(User.email == payload.email).first()
 
@@ -34,13 +35,11 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
 
-    # 🔥 génération ICS
-    ics_path = generate_ics_for_user(user)
-    user.ics_path = ics_path
-    db.commit()
+    # 🔥 Lancer en arrière-plan
+    background_tasks.add_task(generate_ics_for_user, user)
 
     return {
-        "message": "User créé",
+        "message": "User créé, synchronisation en cours",
         "user_id": user.id,
         "calendar_url": f"http://127.0.0.1:8000/calendar/{user.id}"
     }

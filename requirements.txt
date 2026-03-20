@@ -1,3 +1,9 @@
 fastapi
 uvicorn
 sqlalchemy
+pydantic[email]
+python-multipart
+playwright
+python-dateutil
+ics
+TatSu==5.15.1
