@@ -10,3 +10,5 @@ class User(Base):
     planning_login = Column(String, nullable=False)
     planning_password = Column(String, nullable=False)
     ics_path = Column(String, nullable=True)
+
+    status = Column(String, default="pending")
